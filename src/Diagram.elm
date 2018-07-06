@@ -4,12 +4,25 @@ import Array exposing (Array)
 import Svg
 import Svg.Attributes as Attr 
 
+import Diagram.Unit exposing (Length, Unit(..))
+
+type Shape = Rectangle
+           | Oval
+    
+
 type alias Node =
     { label: String
     }
 
 type Edge = Edge Node Node
 
+type alias PreRenderNode =
+    { node: Node
+    , x: Length
+    , y: Length
+    , width: Length
+    , height: Length
+    }    
 type Graph = Graph (Array Node) (Array Edge)
 
 render : Graph -> Svg.Svg msg
