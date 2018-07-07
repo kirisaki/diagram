@@ -1,0 +1,19 @@
+module Diagram.TestUnit exposing (..)
+
+import Diagram.Unit exposing (Length(..), Unit(..), toLength)
+
+import Expect exposing (equal)
+import Test exposing (..)
+
+generateTestCase : String -> String -> Length -> Test
+generateTestCase desc input expected =
+    test desc <|
+        \_ ->
+            toLength input |> equal expected
+                   
+
+suiteToLength : Test
+suiteToLength = describe "toLength" <| map (uncurry generateTestCase)
+                [ ( "normal case", "1em", Length 1 Em )]
+                 
+                

@@ -1,10 +1,36 @@
-module Diagram.Unit exposing ( Length(..)
-                     , Unit(..)
-                     , stringToUnit
-                     , unitToString
-                     )
+module Diagram.Unit exposing
+    (..)
+
+import Parser exposing
+    ( Parser
+    , Error
+    , Count(..)
+    , (|.)
+    , (|=)
+    , symbol
+    , end
+    , delayedCommit
+    , keep
+    , succeed
+    , fail
+    , andThen
+    , oneOf
+    , source
+    , ignore
+    , zeroOrMore
+    , oneOrMore
+    , run)
+import Char exposing
+    ( toLower
+    , isLower
+    , isDigit)
 
 type Length = Length Float Unit
+
+type alias Point =
+    { x: Length
+    , y: Length
+    }
 
 type Unit = Em
           | Ex
@@ -22,6 +48,57 @@ type Unit = Em
           | Vmax
           | Q
 
+toLength : String -> Result Error Length
+toLength s = run lengthDecoder s
+            
+lengthDecoder : Parser Length
+lengthDecoder =
+    succeed Length 
+        |. spaces
+        |= number
+        |= unit
+        |. spaces
+        |. end
+
+number : Parser Float
+number =
+    oneOf
+    [ float
+    , integer
+    ]
+    |. spaces
+       |> andThen floatParser
+
+integer : Parser String
+integer =
+    keep oneOrMore isDigit
+
+float : Parser String
+float = delayedCommit (ignore oneOrMore isDigit)
+      ( ignore zeroOrMore isDigit
+      |. symbol "."
+      |. ignore oneOrMore isDigit
+      )
+      |> source
+
+floatParser : String -> Parser Float
+floatParser s =
+    case String.toFloat s of
+        Ok n ->
+            succeed n
+        Err e ->
+            fail e
+
+unit : Parser Unit
+unit = Parser.map stringToUnit unitString
+
+unitString : Parser String
+unitString = keep zeroOrMore <| toLower >> isLower
+
+spaces : Parser ()
+spaces =
+    ignore zeroOrMore (\c -> c == ' ')
+            
 stringToUnit : String -> Unit
 stringToUnit s =
     case String.toLower s of

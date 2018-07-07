@@ -17,12 +17,13 @@ type alias Node =
 type Edge = Edge Node Node
 
 type alias PreRenderNode =
-    { node: Node
+    { label: String
     , x: Length
     , y: Length
     , width: Length
     , height: Length
-    }    
+    }
+
 type Graph = Graph (Array Node) (Array Edge)
 
 render : Graph -> Svg.Svg msg
