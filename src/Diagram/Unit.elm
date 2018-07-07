@@ -47,10 +47,14 @@ type Unit = Em
           | Vmin
           | Vmax
           | Q
+          | Percent
 
 toLength : String -> Result Error Length
 toLength s = run lengthDecoder s
-            
+
+toString : Length -> String
+toString (Length v u) = Basics.toString v ++ (unitToString u)
+
 lengthDecoder : Parser Length
 lengthDecoder =
     succeed identity
@@ -96,7 +100,7 @@ unit : Parser Unit
 unit = Parser.map stringToUnit unitString
 
 unitString : Parser String
-unitString = keep zeroOrMore <| toLower >> isLower
+unitString = keep zeroOrMore <| toLower >> (\c -> isLower c || c == '%')
 
 spaces : Parser ()
 spaces =
@@ -119,24 +123,12 @@ stringToUnit s =
         "vmin" ->Vmin
         "vmax" ->Vmax
         "q" -> Q
+        "%" -> Percent
         _ -> Px
 
 unitToString : Unit -> String
 unitToString u =
-    case u of
-        Em -> "em"
-        Ex -> "ex"
-        In -> "in"
-        Cm -> "cm"
-        Mm -> "mm"
-        Pt -> "pt"
-        Pc -> "pc"
-        Px -> "px"
-        Ch -> "ch"
-        Rem -> "rem"
-        Vw -> "vw"
-        Vh -> "vh"
-        Vmin -> "vmin"
-        Vmax -> "vmax"
-        Q -> "q"
-        
+    if Basics.toString u == "Percent" then
+        "%"
+    else
+        String.toLower <| Basics.toString u
