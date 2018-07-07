@@ -53,33 +53,36 @@ toLength s = run lengthDecoder s
             
 lengthDecoder : Parser Length
 lengthDecoder =
-    succeed Length 
+    succeed identity
         |. spaces
-        |= number
-        |= unit
+        |= oneOf
+           [ float
+           , integer
+           ]
         |. spaces
         |. end
 
-number : Parser Float
-number =
-    oneOf
-    [ float
-    , integer
-    ]
-    |. spaces
-       |> andThen floatParser
+       
 
-integer : Parser String
-integer =
-    keep oneOrMore isDigit
+integer : Parser Length
+integer = 
+    succeed Length 
+        |= (keep oneOrMore isDigit |> andThen floatParser)
+        |. spaces
+        |= unit
 
-float : Parser String
-float = delayedCommit (ignore oneOrMore isDigit)
-      ( ignore zeroOrMore isDigit
-      |. symbol "."
-      |. ignore oneOrMore isDigit
-      )
-      |> source
+float : Parser Length
+float = 
+    succeed Length
+        |= ( delayedCommit (ignore zeroOrMore isDigit)
+                 ( succeed identity
+                 |. ignore zeroOrMore isDigit
+                 |. symbol "."
+                 |. ignore oneOrMore isDigit)
+           |> source |> andThen floatParser
+           )
+        |. spaces
+        |= unit
 
 floatParser : String -> Parser Float
 floatParser s =

@@ -25,9 +25,22 @@ generateTestCase ( desc, input, expected ) =
                    
 
 suiteToLength : Test
-suiteToLength = describe "toLength" <| List.map generateTestCase
-                [ ( "normal case", "1em", Length 1 Em )
-                , ( "float value", "0.1cm", Length 0.1 Cm)
+suiteToLength = describe "toLength"
+                [ describe "passible" <|
+                      List.map generateTestCase
+                      [ ( "normal case", "1em", Length 1 Em )
+                      , ( "float value", "0.1cm", Length 0.1 Cm)
+                      , ( "including spaces", " 0.12 pc ", Length 0.12 Pc )
+                      , ( "no integer part", ".34em", Length 0.34 Em )
+                      , ( "no unit", "13", Length 13 Px )
+                      , ( "invalid unit", "30 nyaan", Length 30 Px)
+                      ]
+                , describe "unpassible" <|
+                    [ test "too many colon" <|
+                          \_ -> toLength "0.2.3mm" |> err
+                    , test "colon bifore uniy" <|
+                          \_ -> toLength "2.px" |> err
+                    ]
                 ]
                  
                 
